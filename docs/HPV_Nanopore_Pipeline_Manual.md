@@ -1,7 +1,7 @@
 ---
 title: "HPV Whole-Genome Nanopore Analysis Pipeline"
 subtitle: "Pipeline Report & User Manual — shared cluster deployment"
-author: "Bioinformatics Core · HPV tiling-amplicon Nanopore platform"
+author: "Bright Adu, PhD"
 date: "2026-06-06"
 documentclass: report
 geometry: "margin=1in"
@@ -30,6 +30,7 @@ header-includes:
 | Field | Value |
 |-------|-------|
 | Document | HPV Whole-Genome Nanopore Analysis Pipeline — Report & User Manual |
+| Author | Bright Adu, PhD — Genomics and Bioinformatics Core, Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana · ORCID [0000-0002-3622-2137](https://orcid.org/0000-0002-3622-2137) |
 | Manual version | **v1.1** (final; deployed-shared-install reality) |
 | Date | **2026-06-06** |
 | Scheme version | Primer scheme **v5** (canonical accessions; 12 high-risk HPV types) |

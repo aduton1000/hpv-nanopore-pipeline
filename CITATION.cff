@@ -27,8 +27,9 @@ authors:
   - family-names: "Adu"
     given-names: "Bright"
     name-suffix: "PhD"
-    affiliation: "Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
+    affiliation: "Genomics and Bioinformatics Core, Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
     email: "badu@noguchi.ug.edu.gh"
+    orcid: "https://orcid.org/0000-0002-3622-2137"
 references:
   - type: software
     title: "HPV Primer Design — v5 (12 high-risk types, lineage-robust tiling-amplicon scheme)"
@@ -38,4 +39,5 @@ references:
       - family-names: "Adu"
         given-names: "Bright"
         name-suffix: "PhD"
-        affiliation: "Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
+        affiliation: "Genomics and Bioinformatics Core, Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
+        orcid: "https://orcid.org/0000-0002-3622-2137"
