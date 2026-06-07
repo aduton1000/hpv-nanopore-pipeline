@@ -133,24 +133,7 @@ outputs, caches, work and temp go to the user's CWD/HOME — the profile points 
 
 ## Stage-flow diagram
 
-```text
-Instrument (GridION / PromethION P2 Solo): basecalling + demultiplexing
-   |
-   v   fastq_pass/barcodeNN/*.fastq.gz  (+ sequencing_summary_*.txt)
-   |
- [1] INGEST         concat per-barcode FASTQ -> per-sample        (hpv-py)
- [2] READ QC        length/quality stats (+pycoQC if seq-summary) (hpv-qc)
- [3] LENGTH FILTER  amplicon-aware window (keeps HPV52 ~1.1 kb)   (hpv-qc)
- [4] TYPE ASSIGN    competitive minimap2 vs 12 refs; co-infection (hpv-py)
- [5] CONSENSUS      ARTIC minion + Clair3                       (hpv-artic)
-       main:     5 non-wrapping amplicons on the canonical ref
-       junction: amp3 on a ROTATED ref -> rotate back + merge seam
- [6] COVERAGE QC    per-amplicon depth, pool balance            (hpv-py)
- [7] SUMMARY+FIGS   run_summary / consensus_qc / junction_proof (hpv-py)
-   |
-   v
- results/ : consensus FASTA, VCF, coverage, figures, summary -> USER WORKDIR
-```
+![**Runtime analysis workflow.** End-to-end data flow from instrument output to `results/`, with the seven implemented stages (numbered), the one-line action, tool(s) and conda environment for each. The pipeline is orchestrated from a single process in `hpv-py`; each stage's tools are invoked in their own conda environment via `conda run` (the *conductor* model — e.g. `HPV_ARTIC_RUN='conda run -n hpv-artic'`), never all activated at once. Stage 5 shows the two-run origin-junction handling (main run on the canonical reference + a rotated-reference run for the wrapping amplicon, merged back to an origin-continuous consensus). The optional de novo branch (`hpv-asm`) and optional `pycoQC` step are shown with dashed outlines. Colour encodes the conda environment (legend) and is colour-blind-safe / greyscale-legible.](figures/pipeline_workflow.png){width=72%}
 
 The same graph is implemented three ways with identical stages: `run_pipeline.py`
 (single-driver, recommended), `Snakefile` (Snakemake), and `main.nf` (Nextflow). The core
