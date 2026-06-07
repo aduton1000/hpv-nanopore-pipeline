@@ -103,3 +103,21 @@ See [`docs/HPV_Nanopore_Pipeline_Manual.pdf`](docs/HPV_Nanopore_Pipeline_Manual.
 `.md`/`.docx`) — architecture, the six envs, every stage, origin-junction handling, Clair3
 model selection, running real data, interpreting outputs, the validation record, and
 troubleshooting.
+
+## License
+This repository is **dual-licensed by file type**:
+- **Code → MIT** (`LICENSE-MIT.txt`): all scripts/source — `*.py`, `*.sh`, `Snakefile`,
+  `*.nf`, `*.lua`, `*.yml`/`*.yaml`, `nextflow.config` and similar (the bulk of this repo).
+- **Data & documents → CC-BY-4.0** (`LICENSE-CC-BY-4.0.txt`): the manual under `docs/`
+  (`.md`/`.pdf`/`.docx`) and its figures, `docs/installed_versions.txt`, `PIPELINE_STAGES.md`,
+  and the synthetic `pipeline/testdata/`.
+
+**CC-BY attribution:** Bright Adu, ORCID 0000-0002-3622-2137, Genomics and Bioinformatics
+Core, NMIMR, University of Ghana, Legon, Ghana. **Cite via `CITATION.cff`** (details in
+`LICENSE-NOTICE.md`).
+
+*Ambiguous files (assignment stated):* `envs/*.yml` and `nextflow.config` → **MIT**
+(build config); `docs/installed_versions.txt` (captured `conda list`) → **CC-BY-4.0**
+(provenance data); `pipeline/testdata/*.fastq.gz` (synthetic) → **CC-BY-4.0**;
+`PIPELINE_STAGES.md`/`README.md` → **CC-BY-4.0** (docs). GitHub may show "View license"
+rather than one SPDX badge for a dual-licensed repo — expected, not an error.
