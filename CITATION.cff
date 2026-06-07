@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this pipeline, please cite it as below."
+title: "HPV Nanopore Analysis Pipeline (shared cluster, CPU-only)"
+abstract: >-
+  End-to-end, CPU-only reconstruction of HPV whole genomes from Oxford Nanopore
+  tiling-amplicon reads for 12 high-risk types (HPV 16/18/31/33/35/39/45/52/56/58/59/66).
+  Performs ingest, read QC, amplicon-aware length filtering, co-infection-aware type
+  assignment, per-type consensus via ARTIC minion + Clair3 (with two-run origin-junction
+  handling), coverage QC and publication figures. Validated end-to-end on the real
+  ARTIC 1.10.1 + Clair3 2.0.1 path and verified for all-users cluster deployment under a
+  non-admin account. Consumes the scheme v5 bundle from the hpv-primer-design project.
+type: software
+version: "1.1.0"
+date-released: "2026-06-07"
+license: MIT
+repository-code: "https://github.com/aduton1000/hpv-nanopore-pipeline"
+keywords:
+  - HPV
+  - human papillomavirus
+  - Oxford Nanopore
+  - tiling amplicon
+  - ARTIC
+  - Clair3
+  - consensus genome
+  - bioinformatics pipeline
+authors:
+  - family-names: "Adu"
+    given-names: "Bright"
+    name-suffix: "PhD"
+    affiliation: "Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
+    email: "badu@noguchi.ug.edu.gh"
+references:
+  - type: software
+    title: "HPV Primer Design — v5 (12 high-risk types, lineage-robust tiling-amplicon scheme)"
+    repository-code: "https://github.com/aduton1000/hpv-primer-design"
+    notes: "Source of the scheme v5 bundle consumed by this pipeline."
+    authors:
+      - family-names: "Adu"
+        given-names: "Bright"
+        name-suffix: "PhD"
+        affiliation: "Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
