@@ -1,0 +1,23 @@
+# hpv-qc — read QC, length/quality filtering, coverage, generic bioinformatics utils
+# Pins are version FLOORS (>=) so the solver picks the current stable build at install
+# time (per project policy). setup_hpv_nanopore_env.sh exports the exact resolved
+# build to envs/hpv-qc.lock.yml after creation.
+name: hpv-qc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python >=3.10
+  - nanoplot >=1.42
+  - nanocomp >=1.23
+  - pycoqc >=2.5
+  - multiqc >=1.21
+  - fastqc >=0.12
+  - seqkit >=2.6
+  - csvtk >=0.30
+  - mosdepth >=0.3.8
+  - bedtools >=2.31
+  - samtools >=1.19
+  - chopper >=0.7
+  - pigz
+  - tabix

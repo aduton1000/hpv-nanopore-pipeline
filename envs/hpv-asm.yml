@@ -1,0 +1,14 @@
+# hpv-asm — optional de novo assembly path for divergent / novel / co-infection cases.
+# medaka here is the STANDALONE consensus polisher only (NOT the ARTIC variant caller).
+name: hpv-asm
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python >=3.9
+  - flye >=2.9.3
+  - medaka >=1.11        # standalone polisher (CPU)
+  - racon >=1.5
+  - minimap2 >=2.26
+  - samtools >=1.19
+  - any2fasta

@@ -1,0 +1,9 @@
+# hpv-smk — Snakemake workflow manager (alternative to the Nextflow binary on PATH).
+name: hpv-smk
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python >=3.10
+  - snakemake-minimal >=8.10
+  - pandas >=2.1

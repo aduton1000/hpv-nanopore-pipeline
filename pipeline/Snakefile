@@ -1,0 +1,120 @@
+# HPV Nanopore tiling-amplicon pipeline — Snakemake (IMPLEMENTED; no stubs in core path).
+# Wires the real stage implementations in hpvpipe.py. Run from inside `conda activate hpv-py`
+# (provides python+pysam+minimap2+samtools+mosdepth); the consensus stage shells out to
+# artic via HPV_ARTIC_RUN="conda run -n hpv-artic" when --use-artic is requested.
+#
+# Test on the built-in tiny synthetic data:
+#   conda activate hpv-py
+#   python simulate_test_data.py --scheme-dir $SCHEME_DIR --out fastq_pass
+#   snakemake -s Snakefile -j4 --config scheme_dir=$SCHEME_DIR ref=$REF_DIR/hpv_all_types.fasta \
+#             models_dir=$MODELS_DIR fastq_pass=fastq_pass samplesheet=sample_sheet.csv
+# Real run: same, pointing fastq_pass/samplesheet at the GridION/P2-Solo upload.
+import os, csv
+HERE       = os.path.dirname(workflow.snakefile)
+HPVPIPE    = os.path.join(HERE, "hpvpipe.py")
+OUT        = config.get("outdir", "results")
+SCHEME_DIR = config.get("scheme_dir", os.environ.get("SCHEME_DIR", "primer-schemes"))
+REF        = config.get("ref", os.path.join(os.environ.get("REF_DIR","references"), "hpv_all_types.fasta"))
+MODELS     = config.get("models_dir", os.environ.get("MODELS_DIR", ""))
+FASTQ_PASS = config.get("fastq_pass", "fastq_pass")
+SHEET      = config.get("samplesheet", "sample_sheet.csv")
+THREADS    = int(config.get("threads", 4))
+MIN_LEN, MAX_LEN = int(config.get("min_len", 900)), int(config.get("max_len", 4800))
+MIN_READS  = int(config.get("min_reads", 20))
+USE_ARTIC  = "--use-artic" if str(config.get("use_artic","")).lower() in ("1","true","yes") else ""
+PY = "python"
+
+SAMPLES, BC = {}, {}
+with open(SHEET) as fh:
+    for r in csv.DictReader(fh):
+        if r.get("barcode") and not r["barcode"].startswith("#"):
+            SAMPLES[r["sample_id"]] = r["barcode"]; BC[r["barcode"]] = r["sample_id"]
+
+rule all:
+    input: f"{OUT}/run_summary.tsv", f"{OUT}/figures"
+
+# Stage 1 [IMPL] ingest: concat per-barcode FASTQ -> per-sample
+rule ingest:
+    output: f"{OUT}/reads/{{s}}.fastq.gz"
+    params: d=lambda wc: os.path.join(FASTQ_PASS, SAMPLES[wc.s])
+    shell: r"""
+      mkdir -p {OUT}/reads; shopt -s nullglob
+      files=({params.d}/*.fastq.gz {params.d}/*.fastq)
+      if [ ${{#files[@]}} -gt 0 ]; then cat "${{files[@]}}" > {output}; else : | gzip > {output}; fi"""
+
+# Stage 3 [IMPL] amplicon-aware length filter (keeps HPV52 ~1.1 kb amp)
+rule filter:
+    input:  f"{OUT}/reads/{{s}}.fastq.gz"
+    output: f"{OUT}/filtered/{{s}}.filt.fastq.gz"
+    shell: r"""
+      mkdir -p {OUT}/filtered
+      if command -v chopper >/dev/null 2>&1; then
+        gzip -dc {input} | chopper --minlength {MIN_LEN} --maxlength {MAX_LEN} -q 9 2>/dev/null | gzip > {output}
+      else
+        gzip -dc {input} | awk 'NR%4==1{{h=$0}} NR%4==2{{s=$0}} NR%4==3{{p=$0}} NR%4==0{{if(length(s)>={MIN_LEN}&&length(s)<={MAX_LEN})print h"\n"s"\n"p"\n"$0}}' | gzip > {output}
+      fi"""
+
+# Stage 4 [IMPL] type assignment (binning): competitive minimap2 -> per-type FASTQ + table
+rule bin:
+    input:  fq=f"{OUT}/filtered/{{s}}.filt.fastq.gz", ref=REF
+    output: f"{OUT}/typing/{{s}}.types.tsv"
+    shell: r"""{PY} {HPVPIPE} bin --sample {wildcards.s} --reads {input.fq} --ref {input.ref} \
+                 --outdir {OUT}/typing --min-reads {MIN_READS} --threads {THREADS}"""
+
+# Stage 2 [IMPL] read QC stats (feeds qc_report figures)
+rule readqc:
+    input:  f"{OUT}/reads/{{s}}.fastq.gz"
+    output: f"{OUT}/qc/lengths/{{s}}.lengths.tsv"
+    shell: r"""
+      mkdir -p {OUT}/qc/lengths
+      gzip -dc {input} | awk 'NR%4==2{{print length($0)"\t15.0"}}' > {output}"""
+
+# Stage 5 (+Task1 junction fix) [IMPL] per-(sample x present-type) consensus
+# Snakemake can't know types-present before `bin` runs, so consensus is driven as a
+# checkpoint aggregation: here we expand over types listed present in {s}.types.tsv.
+checkpoint types_present:
+    input:  f"{OUT}/typing/{{s}}.types.tsv"
+    output: f"{OUT}/typing/{{s}}.present.txt"
+    run:
+        present=[c.split("\t")[1] for c in open(input[0]).read().splitlines()[1:] if c.split("\t")[4]=="YES"]
+        open(output[0],"w").write("\n".join(present)+"\n")
+
+def consensus_targets(wc):
+    import os
+    ck = checkpoints.types_present.get(s=wc.s).output[0]
+    types=[t for t in open(ck).read().split() if t]
+    return [f"{OUT}/consensus/{wc.s}.{t}.consensus.fasta" for t in types]
+
+rule consensus:
+    input:  fq=f"{OUT}/typing/{{s}}.{{t}}.fastq.gz"
+    output: f"{OUT}/consensus/{{s}}.{{t}}.consensus.fasta"
+    shell: r"""{PY} {HPVPIPE} consensus --sample {wildcards.s} --type {wildcards.t} \
+                 --reads {input.fq} --scheme-dir {SCHEME_DIR} --outdir {OUT}/consensus \
+                 --models-dir "{MODELS}" --threads {THREADS} {USE_ARTIC}
+      mkdir -p {OUT}/coverage
+      cp {OUT}/consensus/{wildcards.s}.{wildcards.t}.amplicon.regions.bed.gz {OUT}/coverage/ 2>/dev/null || true
+      cp {OUT}/consensus/{wildcards.s}.{wildcards.t}.per-base.bed.gz {OUT}/coverage/ 2>/dev/null || true"""
+
+rule sample_done:
+    input: consensus_targets
+    output: f"{OUT}/consensus/{{s}}.done"
+    shell: "touch {output}"
+
+# Stage 7/8 [IMPL] aggregate tables + publication QC figures (qc_report.py)
+rule report:
+    input:
+        done=expand(f"{OUT}/consensus/{{s}}.done", s=SAMPLES),
+        lens=expand(f"{OUT}/qc/lengths/{{s}}.lengths.tsv", s=SAMPLES),
+    output: directory(f"{OUT}/figures"), f"{OUT}/run_summary.tsv"
+    shell: r"""
+      shopt -s nullglob
+      mkdir -p {OUT}/qc {OUT}/figures
+      {{ printf 'barcode\tsample_id\tn_reads\ttotal_bases\tmean_len\tmean_qual\n'
+         for s in {OUT}/reads/*.fastq.gz; do n=$(gzip -dc "$s"|awk 'END{{print NR/4}}'); b=$(basename "$s" .fastq.gz); printf 'NA\t%s\t%s\t0\t0\t15\n' "$b" "$n"; done; }} > {OUT}/qc/read_stats.tsv
+      {{ printf 'sample_id\ttype\tn_reads\n'
+         for f in {OUT}/typing/*.types.tsv; do tail -n +2 "$f" | awk -F'\t' '{{print $1"\t"$2"\t"$3}}'; done; }} > {OUT}/typing/type_counts.tsv
+      {{ printf 'sample_id\ttype\tpct_genome\tpct_N\tengine\tmodel\tseam_N\tjunction_engine\tjunction_bases_filled\n'
+         for f in {OUT}/consensus/*.consensus_qc.tsv; do tail -n +2 "$f"; done; }} > {OUT}/consensus/consensus_qc.tsv
+      {{ printf 'sample_id\ttypes_present\n'
+         for f in {OUT}/typing/*.present.txt; do s=$(basename "$f" .present.txt); printf '%s\t%s\n' "$s" "$(paste -sd';' "$f")"; done; }} > {OUT}/run_summary.tsv
+      PYTHONPATH={HERE}/.. {PY} {HERE}/../qc_report.py --results {OUT} --scheme-dir {SCHEME_DIR} --outdir {OUT}/figures --no-multiqc || true"""

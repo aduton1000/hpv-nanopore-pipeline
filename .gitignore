@@ -1,0 +1,53 @@
+# ---- Real sequencing / clinical data: NEVER commit ----
+results/
+fastq_pass/
+*.fastq
+*.fastq.gz
+*.fast5
+*.pod5
+*.bam
+*.bai
+*.sam
+*.cram
+*.vcf
+*.vcf.gz
+sequencing_summary*
+# any sample sheet EXCEPT the synthetic template
+sample_sheet*.csv
+!**/sample_sheet_TEMPLATE.csv
+# ---- the SYNTHETIC test data IS shipped (re-include despite the *.fastq.gz rule above) ----
+!pipeline/testdata/
+!pipeline/testdata/**
+
+# ---- Large / non-redistributable assets: fetched or built by setup, not stored ----
+clair3_models/
+references/
+*.mmi
+*.fai
+*.nsq
+*.nhr
+*.nin
+*.ndb
+miniforge*
+Miniforge*
+# resolved env lock caches with full build strings can be large; floors live in envs/*.yml
+envs_locks/
+*.fullbuild.lock.yml
+
+# ---- Secrets ----
+.env
+*.pem
+*.key
+id_rsa*
+.netrc
+credentials*
+*.token
+
+# ---- OS / editor / Python cruft ----
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+*.swp

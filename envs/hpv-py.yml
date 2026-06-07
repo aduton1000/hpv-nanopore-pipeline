@@ -1,0 +1,24 @@
+# hpv-py — Python analysis env: typing/binning, summaries, and publication QC figures.
+# kaleido provides static (vector/PNG) export for plotly.
+name: hpv-py
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python >=3.10
+  - pysam >=0.22
+  - biopython >=1.83
+  - pandas >=2.1
+  - numpy >=1.26
+  - scipy >=1.11
+  - pyfaidx >=0.7
+  - scikit-bio >=0.5.9
+  - matplotlib >=3.8
+  - seaborn >=0.13
+  - plotly >=5.20
+  - python-kaleido >=0.2.1   # static export for plotly (SVG/PDF/PNG)
+  - minimap2 >=2.26          # for the competitive-mapping typing step
+  - samtools >=1.19
+  - mosdepth >=0.3.8
+  - bedtools >=2.31
+  - fonttools                # ensures figure font embedding utilities

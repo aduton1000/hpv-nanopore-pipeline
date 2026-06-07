@@ -1,0 +1,23 @@
+# hpv-artic — ARTIC fieldbioinformatics (current stable, >=1.6) with Clair3 2.x variant
+# calling. CPU-only. Aligned to the official ARTIC environment.yml (Clair3 2.x / PyTorch
+# models). Do NOT add medaka/nanopolish for variant calling (current ARTIC uses Clair3).
+# Pins are version FLOORS so the current stable build installs; setup exports the exact
+# resolved build to envs_locks/hpv-artic.lock.yml.
+name: hpv-artic
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python >=3.9            # official allows >=3.7; >=3.9 is compatible
+  - artic >=1.6             # bioconda: artic fieldbioinformatics
+  - clair3 >=2.0.1          # Clair3 2.x (PyTorch models) — NO <2.0 ceiling (obsolete)
+  - align_trim >=1.1.0      # official recipe dep (primer trimming)
+  - primalbedtools >=1.0.0  # official recipe dep (scheme/BED handling + validation)
+  - minimap2 >=2.26
+  - samtools >=1.19
+  - bcftools >=1.19
+  - htslib >=1.19           # official recipe dep
+  - seqtk                   # official recipe dep
+  - biopython               # official recipe dep
+  - tabix
+  - pyfaidx
