@@ -384,6 +384,61 @@ read from `run_pipeline.py` / `hpvpipe.py`.
   `results/consensus/consensus_qc.tsv`, and `results/figures/` (every figure as **SVG + PDF +
   300-dpi PNG**, colour-blind-safe, embedded fonts). See Interpreting outputs.
 
+## (Optional) De novo assembly path — running it by hand
+
+The core pipeline (Stage 5) produces a **reference-guided** consensus with ARTIC + Clair3.
+For **divergent, novel, or hard co-infection** samples — where a genome is too far from the
+canonical reference for tiled mapping to give a clean consensus — an **optional, reference-free
+de novo assembly** is available in the **`hpv-asm`** environment. This is the **dashed branch
+off Stage 5** in the workflow figure: it is **not part of the default run and is *not* invoked
+by `hpv-run`** — you run it by hand, on demand, on the per-type binned reads from Stage 4. Its
+output is a parallel artefact; it is **not** fed into the junction-merge or `consensus_qc.tsv`.
+
+- **Input:** the per-type FASTQ written by Stage 4 (binning),
+  `results/typing/<sample>.<type>.fastq.gz` (e.g. `results/typing/SAMPLE_X.HPV16.fastq.gz`).
+  Working on the binned, single-type read set keeps each assembly to one HPV type even for
+  co-infections.
+- **Tools** (all in `hpv-asm`): `flye` (assembler), `medaka` (standalone neural consensus
+  **polisher** — *not* the ARTIC/Clair3 variant caller), `racon` (optional extra pre-polish),
+  `minimap2`/`samtools` (mapping/orientation check), `any2fasta`.
+
+**Worked example — one sample × type, CPU, 16 threads.** (Prefix any call with
+`conda run -n hpv-asm` instead of activating, to match the conductor model.)
+
+```bash
+# 0) enter the de novo env (the profile must be loaded so $REF_DIR is set)
+hpv-activate asm                       # == conda activate hpv-asm
+S=SAMPLE_X ; T=HPV16 ; THREADS=16
+READS="results/typing/${S}.${T}.fastq.gz"
+OUT="results/denovo/${S}.${T}" ; mkdir -p "$OUT"
+
+# 1) de novo assemble the binned single-type reads (HPV genomes are ~8 kb, circular)
+flye --nano-hq "$READS" --out-dir "$OUT/flye" --threads "$THREADS" --genome-size 8k
+#    -> $OUT/flye/assembly.fasta ; $OUT/flye/assembly_info.txt lists length, depth and
+#       the 'circ.' (circular = Y/N) flag for each contig
+
+# 2) polish the draft with the same reads (medaka standalone consensus polisher)
+medaka_consensus -i "$READS" -d "$OUT/flye/assembly.fasta" -o "$OUT/medaka" -t "$THREADS"
+#    -> $OUT/medaka/consensus.fasta   (the polished de novo consensus)
+
+# 3) sanity-check the de novo consensus against the type reference (orientation / identity)
+minimap2 -ax asm5 "$REF_DIR/hpv_all_types.fasta" "$OUT/medaka/consensus.fasta" \
+    | samtools sort -o "$OUT/${S}.${T}.denovo_vs_ref.bam" -
+samtools index "$OUT/${S}.${T}.denovo_vs_ref.bam"
+```
+
+**Outputs:** `…/flye/assembly.fasta` (draft), `…/flye/assembly_info.txt` (length, depth,
+circular flag), `…/medaka/consensus.fasta` (polished de novo consensus), and the
+`…_denovo_vs_ref.bam` alignment for a quick identity/orientation check in IGV or
+`samtools coverage`.
+
+**When to use it.** Reach for de novo when Stage-5 coverage QC shows large reference-driven
+dropouts, or when a sample is suspected to be a **novel/recombinant lineage** that the v5
+scheme's references do not represent. Otherwise the reference-guided ARTIC + Clair3 consensus
+(Stage 5) remains the validated default. Because HPV genomes are circular, expect Flye to mark
+the contig **circular**; rotate it onto the canonical origin (e.g. with the scheme reference as
+a guide) before comparing coordinates with the Stage-5 consensus.
+
 # Origin-junction handling
 
 This is the system's most distinctive feature.

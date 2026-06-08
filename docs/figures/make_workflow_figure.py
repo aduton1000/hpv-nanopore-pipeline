@@ -236,24 +236,24 @@ lh = 0.118
 box(SB_X, ly - lh, SB_W, lh, band=True, lw=1.2)
 ax.text(SB_X + SB_W / 2, ly - 0.013, "Legend — conda environment",
         ha="center", va="top", fontsize=9.0, fontweight="bold", color=INK, zorder=6)
-order = [("hpv-py", "orchestration · typing · summaries"),
-         ("hpv-qc", "read QC · length filter · coverage"),
+order = [("hpv-py", "orchestration, typing, figures"),
+         ("hpv-qc", "read QC, filtering, coverage"),
          ("hpv-artic", "ARTIC minion + Clair3 2.x"),
-         ("hpv-asm", "optional de novo (flye + medaka)")]
+         ("hpv-asm", "de novo: flye + medaka")]
 yy = ly - 0.036
 for env, desc in order:
     st = ENV[env]
-    ax.add_patch(FancyBboxPatch((SB_X + 0.020, yy - 0.010), 0.030, 0.016,
+    ax.add_patch(FancyBboxPatch((SB_X + 0.018, yy - 0.009), 0.028, 0.015,
                  boxstyle="round,pad=0.002,rounding_size=0.004",
                  facecolor=st["fill"], edgecolor=st["edge"], lw=1.4, zorder=6))
-    ax.text(SB_X + 0.058, yy - 0.002, env, ha="left", va="center",
-            fontsize=7.8, fontweight="bold", color=st["edge"], zorder=6)
-    ax.text(SB_X + 0.135, yy - 0.002, desc, ha="left", va="center",
-            fontsize=6.9, color="#333333", zorder=6)
+    ax.text(SB_X + 0.052, yy - 0.002, env, ha="left", va="center",
+            fontsize=6.9, fontweight="bold", color=st["edge"], zorder=6)
+    ax.text(SB_X + 0.130, yy - 0.002, desc, ha="left", va="center",
+            fontsize=6.3, color="#333333", zorder=6)
     yy -= 0.0205
-ax.text(SB_X + 0.020, yy - 0.001,
+ax.text(SB_X + 0.018, yy - 0.001,
         "dashed outline = optional stage / branch",
-        ha="left", va="center", fontsize=6.9, fontstyle="italic", color="#555555", zorder=6)
+        ha="left", va="center", fontsize=6.3, fontstyle="italic", color="#555555", zorder=6)
 
 # ---------------------------------------------------------------- title
 ax.text(0.045, 0.997, "HPV Nanopore pipeline — runtime analysis workflow",
