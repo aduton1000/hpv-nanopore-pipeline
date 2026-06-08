@@ -57,11 +57,11 @@ def vtext(cx, top, lines, *, gap=None):
     return y
 
 
-def chip(cx, cy, label, env):
+def chip(cx, cy, label, env, size=7.5):
     st = ENV[env]
-    ax.text(cx, cy, label, ha="center", va="center", fontsize=8.0, fontweight="bold",
+    ax.text(cx, cy, label, ha="center", va="center", fontsize=size, fontweight="bold",
             color=st["edge"], zorder=6,
-            bbox=dict(boxstyle="round,pad=0.28", fc="white", ec=st["edge"], lw=1.2))
+            bbox=dict(boxstyle="round,pad=0.26", fc="white", ec=st["edge"], lw=1.1))
 
 
 def down_arrow(cx, y0, y1, label=None):
@@ -74,11 +74,11 @@ def down_arrow(cx, y0, y1, label=None):
 
 
 # ---------------------------------------------------------------- geometry
-COL_X, COL_W = 0.045, 0.555          # main vertical flow column
+COL_X, COL_W = 0.045, 0.575          # main vertical flow column
 COL_CX = COL_X + COL_W / 2
-SB_X, SB_W = 0.640, 0.330            # right sidebar
-H = 0.083                            # stage box height
-GAP = 0.0235                         # arrow gap between stages
+SB_X, SB_W = 0.655, 0.325            # right sidebar
+H = 0.085                            # stage box height
+GAP = 0.023                          # arrow gap between stages
 
 # ---- instrument header band
 itop, ih = 0.963, 0.083
@@ -101,10 +101,10 @@ stages = [
      "Length / quality window; keeps the ~1.1 kb HPV52 amp7",
      "chopper --minlength 900 --maxlength 4800 -q 9"),
     ("4", "Type assignment / binning", "hpv-py",
-     "Competitive map to 12 HPV refs; best-hit per read; split per type",
-     "minimap2 -ax map-ont  ·  hpvpipe.py bin   (co-infection aware)"),
+     "Competitive map vs 12 HPV refs; best-hit/read; split per type",
+     "minimap2 -ax map-ont  ·  hpvpipe.py bin  (co-infection aware)"),
     ("5", "Per-type consensus", "hpv-artic",
-     "ARTIC consensus per type -> consensus FASTA, VCF, trimmed BAM",
+     "ARTIC consensus/type -> consensus FASTA, VCF, trimmed BAM",
      "artic minion  ·  Clair3 2.x  ·  hpvpipe.py consensus"),
     ("6", "Coverage QC", "hpv-py",
      "Per-amplicon depth and dual-pool balance",
@@ -122,17 +122,18 @@ for (num, name, env, what, tool) in stages:
     ybot = ytop - H
     box(COL_X, ybot, COL_W, H, env=env)
     # numbered disc
-    ax.add_patch(plt.Circle((COL_X + 0.040, ytop - 0.022), 0.0185,
+    ax.add_patch(plt.Circle((COL_X + 0.038, ytop - 0.021), 0.0175,
                  facecolor=ENV[env]["edge"], edgecolor="white", lw=1.3, zorder=6))
-    ax.text(COL_X + 0.040, ytop - 0.022, num, ha="center", va="center",
-            fontsize=10, fontweight="bold", color="white", zorder=7)
-    ax.text(COL_X + 0.072, ytop - 0.0145, name, ha="left", va="top",
-            fontsize=10.2, fontweight="bold", color=INK, zorder=6)
-    ax.text(COL_X + 0.020, ytop - 0.044, what, ha="left", va="top",
-            fontsize=8.2, color="#222222", zorder=6)
-    ax.text(COL_X + 0.020, ytop - 0.062, tool, ha="left", va="top",
-            fontsize=7.6, color="#444444", fontstyle="italic", zorder=6)
-    chip(COL_X + COL_W - 0.066, ybot + 0.020, env, env)
+    ax.text(COL_X + 0.038, ytop - 0.021, num, ha="center", va="center",
+            fontsize=9.6, fontweight="bold", color="white", zorder=7)
+    # env chip in the top-right corner (kept clear of the body text below)
+    chip(COL_X + COL_W - 0.050, ytop - 0.021, env, env)
+    ax.text(COL_X + 0.066, ytop - 0.0125, name, ha="left", va="top",
+            fontsize=9.8, fontweight="bold", color=INK, zorder=6)
+    ax.text(COL_X + 0.022, ytop - 0.040, what, ha="left", va="top",
+            fontsize=8.0, color="#222222", zorder=6)
+    ax.text(COL_X + 0.022, ytop - 0.058, tool, ha="left", va="top",
+            fontsize=7.4, color="#444444", fontstyle="italic", zorder=6)
     cy[num] = (ytop, ybot, (ytop + ybot) / 2)
     top = ybot - GAP
 
@@ -175,45 +176,59 @@ ax.text(nx, note_top - 0.040,
         "env per stage.",
         ha="left", va="top", fontsize=7.9, color="#222222", zorder=6, linespacing=1.25)
 
-# (b) origin-junction sub-detail, connected to stage 5
+# (b) origin-junction handling — INTEGRAL to step 5: it loops out for the rotated
+#     amp3 run and the merged consensus returns to the main flow (solid arrows).
+J_C = ENV["hpv-artic"]["edge"]
 j_top = cy["5"][0] + 0.004
 j_h = 0.150
 j_bot = j_top - j_h
-box(SB_X, j_bot, SB_W, j_h, env="hpv-artic", lw=1.5)
+box(SB_X, j_bot, SB_W, j_h, env="hpv-artic", lw=1.6)
 ax.text(SB_X + SB_W / 2, j_top - 0.014, "Origin-junction handling (amp3)",
-        ha="center", va="top", fontsize=8.9, fontweight="bold",
-        color=ENV["hpv-artic"]["edge"], zorder=6)
-ax.text(SB_X + 0.018, j_top - 0.037,
-        "Amplicon spanning the circular origin\n"
-        "is recovered with two ARTIC runs:\n\n"
-        "• MAIN run -- 5 non-wrapping amplicons\n"
+        ha="center", va="top", fontsize=8.9, fontweight="bold", color=J_C, zorder=6)
+ax.text(SB_X + 0.018, j_top - 0.036,
+        "Part of step 5 — the origin-spanning\n"
+        "amplicon, recovered with two ARTIC runs:\n"
+        "• MAIN: 5 non-wrapping amplicons\n"
         "  on the canonical reference\n"
-        "• JUNCTION run -- amp3 on a ROTATED\n"
-        "  reference (no negative-length crash)\n\n"
-        "then rotate back + merge the seam\n"
-        "=> origin-continuous consensus (seam N = 0)",
-        ha="left", va="top", fontsize=7.7, color="#222222", zorder=6, linespacing=1.22)
-# connector stage5 -> junction box
-ax.add_patch(FancyArrowPatch((COL_X + COL_W, cy["5"][2]), (SB_X, j_top - 0.02),
-             arrowstyle="-|>", mutation_scale=13, lw=1.6,
-             color=ENV["hpv-artic"]["edge"], zorder=1))
+        "• JUNCTION: amp3 on a ROTATED ref\n"
+        "  (no negative-length crash)\n"
+        "rotate back + merge the seam INTO\n"
+        "step 5's consensus => seam N = 0,\n"
+        "continuous -> on to coverage QC",
+        ha="left", va="top", fontsize=7.5, color="#222222", zorder=6, linespacing=1.25)
+# IN: step 5 -> junction (solid)
+ax.add_patch(FancyArrowPatch((COL_X + COL_W, cy["5"][0] - 0.024), (SB_X, j_top - 0.028),
+             arrowstyle="-|>", mutation_scale=12, lw=1.7, color=J_C, zorder=3,
+             connectionstyle="arc3,rad=-0.15"))
+ax.text((COL_X + COL_W + SB_X) / 2, cy["5"][0] - 0.006, "amp3\njunction run",
+        ha="center", va="bottom", fontsize=6.2, color=J_C, zorder=6, linespacing=1.0)
+# RETURN: merged consensus -> back into the 5->6 flow (SOLID; integral, not a dead end)
+merge_y = (cy["5"][1] + cy["6"][0]) / 2
+ax.add_patch(FancyArrowPatch((SB_X, j_bot + 0.040), (COL_X + COL_W, merge_y),
+             arrowstyle="-|>", mutation_scale=14, lw=1.9, color=J_C, zorder=3,
+             connectionstyle="arc3,rad=0.28"))
+ax.text((COL_X + COL_W + SB_X) / 2 + 0.004, merge_y - 0.010, "merged\nconsensus",
+        ha="center", va="top", fontsize=6.2, fontstyle="italic", color=J_C,
+        zorder=6, linespacing=1.0)
 
-# (c) optional de novo branch off stage 5
-dn_top = j_bot - 0.022
-dn_h = 0.085
+# (c) optional de novo branch off STEP 5 (DASHED, optional, NO return — distinct from junction)
+D_C = ENV["hpv-asm"]["edge"]
+dn_top = j_bot - 0.034
+dn_h = 0.082
 dn_bot = dn_top - dn_h
 box(SB_X, dn_bot, SB_W, dn_h, env="hpv-asm", dashed=True, lw=1.5)
-ax.text(SB_X + SB_W / 2, dn_top - 0.013, "Optional — de novo path",
-        ha="center", va="top", fontsize=8.7, fontweight="bold",
-        color=ENV["hpv-asm"]["edge"], zorder=6)
+ax.text(SB_X + SB_W / 2, dn_top - 0.013, "Optional — de novo path (off step 5)",
+        ha="center", va="top", fontsize=8.4, fontweight="bold", color=D_C, zorder=6)
 ax.text(SB_X + 0.018, dn_top - 0.035,
-        "Branch off step 5 for divergent /\n"
-        "novel / co-infection cases:\n"
-        "flye + medaka polish (not core path).",
-        ha="left", va="top", fontsize=7.7, color="#222222", zorder=6, linespacing=1.22)
-ax.add_patch(FancyArrowPatch((SB_X + SB_W / 2, j_bot), (SB_X + SB_W / 2, dn_top),
-             arrowstyle="-|>", mutation_scale=12, lw=1.5,
-             color=ENV["hpv-asm"]["edge"], linestyle=(0, (4, 2)), zorder=1))
+        "Alternative for divergent / novel /\n"
+        "co-infection cases: flye + medaka\n"
+        "polish. Optional — not part of every\n"
+        "run, and does not return to the core flow.",
+        ha="left", va="top", fontsize=7.5, color="#222222", zorder=6, linespacing=1.22)
+# dashed one-way arrow step 5 -> de novo (no return)
+ax.add_patch(FancyArrowPatch((COL_X + COL_W, cy["5"][1] + 0.006), (SB_X, dn_top - 0.020),
+             arrowstyle="-|>", mutation_scale=12, lw=1.5, color=D_C,
+             linestyle=(0, (4, 2)), zorder=2, connectionstyle="arc3,rad=-0.30"))
 
 # ---------------------------------------------------------------- legend
 ly = dn_bot - 0.030
