@@ -1,3 +1,18 @@
+<!-- banner -->
+![HPV Nanopore Analysis Pipeline](assets/banner.png)
+
+<p align="center">
+  <img alt="license" src="https://img.shields.io/badge/license-MIT%20%2B%20CC--BY--4.0-2b7bb9">
+  <img alt="python" src="https://img.shields.io/badge/python-3.13-3776AB?logo=python&logoColor=white">
+  <img alt="platform" src="https://img.shields.io/badge/platform-Linux%20(HPC)-8A6D1C">
+  <img alt="ont" src="https://img.shields.io/badge/Oxford%20Nanopore-ARTIC%20%2B%20Clair3-1E8E8E">
+  <img alt="status" src="https://img.shields.io/badge/status-validated%20(software)-2ea043">
+</p>
+
+<p align="center"><b>HPV whole-genome reconstruction from Oxford Nanopore tiling-amplicon reads —<br>12 high-risk types, per-type consensus, variants, coverage QC and figures, entirely on CPU.</b></p>
+
+---
+
 # HPV Nanopore Analysis Pipeline (shared cluster, CPU-only)
 
 End-to-end reconstruction of **HPV whole genomes** from Oxford Nanopore **tiling-amplicon**
@@ -11,6 +26,19 @@ basecaller).
 > This pipeline ingests that project's **scheme v5** bundle (per-type `primer.bed` +
 > `reference.fasta`, `scheme_summary.tsv`, the 12 canonical-accession references). The design
 > repo is the source of the scheme; this repo is the analysis environment + validated pipeline.
+
+## Pipeline
+
+```mermaid
+flowchart LR
+  FQ([fastq_pass/barcodeNN]) --> ING[ingest<br/>concat per barcode]
+  ING --> QC[read QC<br/>+ figures]
+  QC --> FILT[length / quality<br/>filter]
+  FILT --> TYPE[type assignment<br/>co-infection aware]
+  TYPE --> CONS[per-type consensus<br/>ARTIC minion + Clair3<br/>two-run origin junction]
+  CONS --> COV[coverage QC]
+  CONS --> FIG[publication figures]
+```
 
 ## Status: validated (software)
 - **End-to-end on the real caller path** — ARTIC **1.10.1** + Clair3 **2.0.1**
