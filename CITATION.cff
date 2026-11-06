@@ -1,20 +1,27 @@
 cff-version: 1.2.0
 message: "If you use this pipeline, please cite it as below."
-title: "HPV Nanopore Analysis Pipeline (shared cluster, CPU-only)"
+title: "HPV Nanopore Analysis Pipeline: CPU-only whole-genome reconstruction of 12 high-risk HPV types from tiling-amplicon reads"
 abstract: >-
   End-to-end, CPU-only reconstruction of HPV whole genomes from Oxford Nanopore
   tiling-amplicon reads for 12 high-risk types (HPV 16/18/31/33/35/39/45/52/56/58/59/66).
   Performs ingest, read QC, amplicon-aware length filtering, co-infection-aware type
   assignment, per-type consensus via ARTIC minion + Clair3 (with two-run origin-junction
   handling), coverage QC and publication figures. Validated end-to-end on the real
-  ARTIC 1.10.1 + Clair3 2.0.1 path and verified for all-users cluster deployment under a
-  non-admin account. Consumes the scheme v5 bundle from the hpv-primer-design project.
-type: software
-version: "1.1.0"
+  ARTIC 1.10.1 + Clair3 2.0.1 path and verified for all-users shared-cluster deployment
+  under a non-admin account. Consumes the scheme v5 bundle from the hpv-primer-design project.
+authors:
+  - family-names: "Adu"
+    given-names: "Bright"
+    alias: "aduton1000"
+    orcid: "https://orcid.org/0000-0002-3622-2137"
+    affiliation: "Genomics & Bioinformatics Core, Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
+version: 1.1.0
 date-released: "2026-06-07"
 license: MIT
+type: software
 repository-code: "https://github.com/aduton1000/hpv-nanopore-pipeline"
 keywords:
+  - bioinformatics
   - HPV
   - human papillomavirus
   - Oxford Nanopore
@@ -22,20 +29,8 @@ keywords:
   - ARTIC
   - Clair3
   - consensus genome
-  - bioinformatics pipeline
-authors:
-  - family-names: "Adu"
-    given-names: "Bright"
-    affiliation: "Genomics and Bioinformatics Core, Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
-    email: "badu@noguchi.ug.edu.gh"
-    orcid: "https://orcid.org/0000-0002-3622-2137"
 references:
   - type: software
-    title: "HPV Primer Design — v5 (12 high-risk types, lineage-robust tiling-amplicon scheme)"
+    title: "HPV Primer Design: v5 lineage-robust tiling-amplicon scheme for 12 high-risk HPV types"
     repository-code: "https://github.com/aduton1000/hpv-primer-design"
     notes: "Source of the scheme v5 bundle consumed by this pipeline."
-    authors:
-      - family-names: "Adu"
-        given-names: "Bright"
-        affiliation: "Genomics and Bioinformatics Core, Noguchi Memorial Institute for Medical Research, University of Ghana, Legon, Ghana"
-        orcid: "https://orcid.org/0000-0002-3622-2137"
